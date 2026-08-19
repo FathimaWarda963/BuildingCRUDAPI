@@ -17,13 +17,16 @@ class TaskUpdate(BaseModel):
     title: Optional[str] = None
     done: Optional[bool] = None
 
-# This is a miniature storage unit within the code used to demonstrate the various endpoints
-# It acts as the database for the demonstration of this project
-tasks_db = [
+# Initial seed data used for resets
+INITIAL_TASKS = [
     {"id": 1, "title": "Sand basswood strips🪵", "done": False},
     {"id": 2, "title": "Export heavy 3D models 🧊", "done": True},
     {"id": 3, "title": "Print large-format drawings 🖼️", "done": False},
 ]
+
+# This is a miniature storage unit within the code used to demonstrate the various endpoints
+# It acts as the database for the demonstration of this project
+tasks_db = [task.copy() for task in INITIAL_TASKS]
 
 @app.get("/")
 def read_root():
@@ -31,7 +34,7 @@ def read_root():
     return {
         "name": "Task API",
         "version": "1.0",
-        "endpoints": ["/tasks"]
+        "endpoints": ["/tasks", "/stats", "/reset"]
     }
 
 @app.get("/health")
@@ -39,11 +42,33 @@ def health_check():
     """HEALTH CHECK ENDPOINT: This used by external monitors in order to see if particular servers are available 🩺"""
     return {"status": "ok"}
 
+@app.get("/stats")
+def get_stats():
+    """STATS ENDPOINT: Calculates live task metrics directly from memory 📊"""
+    total = len(tasks_db)
+    done_count = sum(1 for task in tasks_db if task["done"])
+    return {
+        "total": total,
+        "done": done_count,
+        "open": total - done_count
+    }
+
+@app.post("/reset")
+def reset_database():
+    """RESET ENDPOINT: Restores the storage unit back to the 3 initial example tasks 🔄"""
+    global tasks_db
+    tasks_db = [task.copy() for task in INITIAL_TASKS]
+    return {"message": "Storage reset to initial example tasks"}
 
 @app.get("/tasks")
-def get_tasks():
-    """This enables us to obtain all of the tasks available in the storage unit 📦"""
-    return tasks_db
+def get_tasks(done: Optional[bool] = None, search: Optional[str] = None):
+    """This enables us to obtain tasks, with optional filtering by status (?done=true) or searching titles (?search=word) 📦"""
+    results = tasks_db
+    if done is not None:
+        results = [t for t in results if t["done"] == done]
+    if search is not None:
+        results = [t for t in results if search.lower() in t["title"].lower()]
+    return results
 
 @app.get("/tasks/{task_id}")
 def get_task(task_id: int):
@@ -52,7 +77,6 @@ def get_task(task_id: int):
         if task["id"] == task_id:
             return task
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
-
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
 def create_task(task: TaskCreate):
@@ -78,7 +102,6 @@ def create_task(task: TaskCreate):
     tasks_db.append(new_task)
     return new_task
 
-
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, task_update: TaskUpdate):
     """This endpoint enables us to update a particular task within the storage unit using their id for search 🛠️"""
@@ -96,10 +119,8 @@ def update_task(task_id: int, task_update: TaskUpdate):
                 
             return task
 
-    # If the id is not found, then an exception is raised, along with 404 error code, and an easy to understand
-    # error message
+    # If the id is not found, then an exception is raised, along with 404 error code
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
-
 
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task_id: int):
