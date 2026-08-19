@@ -1,10 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
+from pydantic import BaseModel
 
 # This creates an instance of FastAPI
 app = FastAPI(
     title="Task API",
     description="A simple in-memory To-Do list API"
 )
+
+# The Pydantic Scheme Class is used in order to validate the incoming data when a task is created 
+class TaskCreate(BaseModel):
+    title: str
 
 # This is a miniature storage unit within the code used to demonstrate the various endpoints
 #  It acts as the database for the demonstration of this project
@@ -36,11 +41,31 @@ def get_tasks():
 # This enables us to view the details of a task by using their id 
 @app.get("/tasks/{task_id}")
 def get_task(task_id: int):
-    # First we use loops to go through each of the tasks and if a match is found, that particular task is returned
     for task in tasks_db:
         if task["id"] == task_id:
             return task
-            
-    # If the id is not found, then an exception is raised, along with 404 error code, and an easy to understand 
-    # error message 
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+
+# This endpoint enables us to create data by "sending" the information "posted" into the server
+@app.post("/tasks", status_code=status.HTTP_201_CREATED)
+def create_task(task: TaskCreate):
+    # This validates the incoming information, such that if the title is empty, it is not allowed
+    if not task.title or not task.title.strip():
+        raise HTTPException(
+            status_code=400, 
+            detail="Title cannot be empty or blank"
+        )
+    
+    # This automatically increments the id so that the new information is assigned a unique value 
+    next_id = max([t["id"] for t in tasks_db], default=0) + 1
+    
+    # This then gives the new task the structure required to be added into the storage unit
+    new_task = {
+        "id": next_id,
+        "title": task.title.strip(),
+        "done": False
+    }
+    
+    # Finally, the task is added to our storage unit
+    tasks_db.append(new_task)
+    return new_task
