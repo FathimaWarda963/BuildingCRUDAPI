@@ -45,10 +45,14 @@ ________________________________________________________________________________
 ### Sample curl -i Execution Output 
 Testing Single Task Retrieval with curl -i http://127.0.0.1:8000/tasks/1  
 
-HTTP/1.1 200 OK
-date: Wed, 19 Aug 2026 00:28:59 GMT
-server: uvicorn
-content-length: 56
+HTTP/1.1 200 OK  
+
+date: Wed, 19 Aug 2026 00:28:59 GMT  
+
+server: uvicorn  
+
+content-length: 56  
+
 content-type: application/json
 
 {"id":1,"title":"Sand basswood strips🪵","done":false}
