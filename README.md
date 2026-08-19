@@ -12,7 +12,7 @@ A lightweight, in-memory RESTful To-Do list API built with **FastAPI**, **Pydant
 ### 🛠️ How to Install & Run
 1. **Clone the repository:**
    ```bash
-   git clone <YOUR-GITHUB-REPO-URL>
+   git clone <(https://github.com/FathimaWarda963/BuildingCRUDAPI)>
    cd BuildingCRUDAPI
 
 
