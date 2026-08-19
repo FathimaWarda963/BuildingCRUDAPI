@@ -25,36 +25,38 @@ tasks_db = [
     {"id": 3, "title": "Print large-format drawings 🖼️", "done": False},
 ]
 
-# Root endpoint - This acts as the API's front door and describes or demonstrates the available routes
 @app.get("/")
 def read_root():
+    """ROOT ENDPOINT: This acts as the API's front door and describes or demonstrates the available routes🚪"""
     return {
         "name": "Task API",
         "version": "1.0",
         "endpoints": ["/tasks"]
     }
 
-# Health check endpoint - This is used by external monitors in order to see if particular servers are available
 @app.get("/health")
 def health_check():
+    """HEALTH CHECK ENDPOINT: This used by external monitors in order to see if particular servers are available 🩺"""
     return {"status": "ok"}
 
-# This enables us to obtain all of the tasks available in the storage unit
+
 @app.get("/tasks")
 def get_tasks():
+    """This enables us to obtain all of the tasks available in the storage unit 📦"""
     return tasks_db
 
-# This enables us to view the details of a task by using their id 
 @app.get("/tasks/{task_id}")
 def get_task(task_id: int):
+    """This enables us to view the details of a task by using their id 🪪"""
     for task in tasks_db:
         if task["id"] == task_id:
             return task
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
-# This endpoint enables us to create data by "sending" the information "posted" into the server
+
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
 def create_task(task: TaskCreate):
+    """This endpoint enables us to create data by "sending" the information "posted" into the server💬"""
     # This validates the incoming information, such that if the title is empty, it is not allowed
     if not task.title or not task.title.strip():
         raise HTTPException(
@@ -76,9 +78,10 @@ def create_task(task: TaskCreate):
     tasks_db.append(new_task)
     return new_task
 
-# This endpoint enables us to update a particular task within the storage unit using their id for search
+
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, task_update: TaskUpdate):
+    """This endpoint enables us to update a particular task within the storage unit using their id for search 🛠️"""
     for task in tasks_db:
         if task["id"] == task_id:
             # This is to ensure that the user provides the title to keep the structure consistent
@@ -97,9 +100,10 @@ def update_task(task_id: int, task_update: TaskUpdate):
     # error message
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
-# This endpoint enables us to delete a task from the storage unit using their id for search
+
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task_id: int):
+    """This endpoint enables us to delete a task from the storage unit using their id for search 🗑️"""
     for index, task in enumerate(tasks_db):
         if task["id"] == task_id:
             tasks_db.pop(index)
